@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: mysite_nginx
+    build:
+      context: ./docker/dev/nginx/
+    ports:
+      - 80:80
+      # - ./:/var/www/vhosts/myprac/:cached
+      # - ./docker/dev/nginx/default.conf:/etc/nginx/conf.d/default.conf:cached
+      # - ./docker/dev/nginx/nginx.conf:/etc/nginx/nginx.conf:cached
+    depends_on:
+      - php
+
+  php:
+    container_name: mysite_php
+    build:
+      context: ./docker/dev/php/
+    volumes:
+      - ./src:/var/www/vhosts/myprac/:cached
+      # - ./docker/dev/php/www.conf:/etc/php-fpm.d/www.conf:cached
+
+  db:
+    image: mysql:8.0
+    container_name: mysite_db
+    hostname: mysql
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+    command:
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+    environment:
+      - MYSQL_ROOT_PASSWORD=prac
+      - MYSQL_DATABASE=myprac
+      - MYSQL_USER=masa
+      - MYSQL_PASSWORD=prac
+    volumes:
+      - ./src/database/config/:/etc/mysql/conf.d/
+    platform: linux/x86_64
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mysite_phpmyadmin
+    hostname: phpmyadmin
+    depends_on:
+      - db
+    ports:
+      - "9090:80"
